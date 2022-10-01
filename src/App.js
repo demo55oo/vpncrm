@@ -27,6 +27,11 @@ const App = () => {
       label: 'DBA Name',
       type: 'text'
     },
+    {
+      id: 'size',
+      label: 'size',
+      type: 'number'
+    },
   ];
 
   const [data, setData] = useState({});
@@ -37,7 +42,7 @@ const App = () => {
 
   let validate = false;
 
-  if(data.Legal_Name || data.USDOT_Number) {
+  if(data.Legal_Name || data.USDOT_Number || data.size) {
     validate = true
   };
 
@@ -245,12 +250,11 @@ const App = () => {
     try {
       let currentData = [];
       if(data.USDOT_Number) {
-        currentData = await getData(`${data.USDOT_Number}`);
+        currentData = await getData(`${data.USDOT_Number}`, data.size);
         currentData && setDownloadedData([currentData]);
-        console.log(currentData)
       }
       if(data.Legal_Name) {
-        currentData = await getData(`name/${data.Legal_Name}`);
+        currentData = await getData(`name/${data.Legal_Name}`, data.size);
         setDownloadedData(currentData);
       }
       setTimeout(async () => {
