@@ -42,7 +42,7 @@ const App = () => {
 
   let validate = false;
 
-  if(data.Legal_Name || data.USDOT_Number || data.size) {
+  if(data.Legal_Name || data.USDOT_Number) {
     validate = true
   };
 
@@ -251,11 +251,26 @@ const App = () => {
       let currentData = [];
       if(data.USDOT_Number) {
         currentData = await getData(`${data.USDOT_Number}`, data.size);
-        currentData && setDownloadedData([currentData]);
+        const arr = [];
+        [currentData].map(d => {
+          if(d.carrier.phyState === 'CA') {
+            arr.push(d);
+          }else {
+            // eslint-disable-next-line array-callback-return
+            return;
+          }
+        })
+        currentData && setDownloadedData(arr);
       }
       if(data.Legal_Name) {
         currentData = await getData(`name/${data.Legal_Name}`, data.size);
-        setDownloadedData(currentData);
+        let arr = [];
+        currentData.map(d => {
+          if(d.carrier.phyState === 'CA') {
+            arr.push(d);
+          }
+        })
+        setDownloadedData(arr);
       }
       setTimeout(async () => {
         await csvDownloadRef.current.link.click();          
@@ -289,7 +304,7 @@ const App = () => {
         <div className='form__btns'>
             <button disabled={!validate} className={isLoading ? 'loading' : ''} type='submit'>
             <CSVLink className='download__btn' ref={csvDownloadRef} {...csvLink}>
-              {isLoading ? <div className='spinner'></div> : 'Scrap'}
+              {isLoading ? <div className='spinner'></div> : 'Scrape'}
             </CSVLink>
             {/* Scrap */}
             </button>
