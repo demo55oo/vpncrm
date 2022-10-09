@@ -37,7 +37,8 @@ const App = () => {
   const [data, setData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [downloadedData, setDownloadedData] = useState([]);
-  const [message, setMessage] = useState(null)
+  const [message, setMessage] = useState(null);
+  const [area, setArea] = useState('all');
   const csvDownloadRef = useRef(null);
 
   let validate = false;
@@ -252,30 +253,39 @@ const App = () => {
       if(data.USDOT_Number) {
         currentData = await getData(`${data.USDOT_Number}`, data.size);
         const arr = [];
-        [currentData].map(d => {
-          if(d.carrier.phyState === 'CA') {
-            arr.push(d);
-          }else {
-            // eslint-disable-next-line array-callback-return
-            return;
-          }
-        })
-        currentData && setDownloadedData(arr);
+        if(area === 'all') {
+          setDownloadedData([currentData]);
+        } else {
+          [currentData].map(d => {
+            if(d.carrier.phyState === area) {
+              arr.push(d);
+            }else {
+              // eslint-disable-next-line array-callback-return
+              return;
+            }
+          })
+          currentData && setDownloadedData(arr);
+        }
       }
       if(data.Legal_Name) {
         currentData = await getData(`name/${data.Legal_Name}`, data.size);
         let arr = [];
-        currentData.map(d => {
-          if(d.carrier.phyState === 'CA') {
-            arr.push(d);
-          }
-        })
-        setDownloadedData(arr);
+        if(area === 'all') {
+          setDownloadedData(currentData);
+        } else {
+          currentData.map(d => {
+            if(d.carrier.phyState === area) {
+              arr.push(d);
+            }
+          })
+          setDownloadedData(arr);
+        }
       }
       setTimeout(async () => {
         await csvDownloadRef.current.link.click();          
       }, 500)
       setData({});
+      setArea('all')
     } catch (error) {
       setMessage(error.response.data.content)
     }
@@ -289,13 +299,14 @@ const App = () => {
         {sources.map(input => (
         <div className='input__controle' key={input.id}>
           <label htmlFor={input.id}>{input.label}:</label>
-          {input.id === 'Docket_Number' && (
-            <select onChange={e => setData({...data, option: e.target.value})}>
-              <option value='MC' defaultChecked>MC</option>
-              <option value='FF'>FF</option>
-              <option value='MX'>MX</option>
+          {input.id === 'USDOT_Number' || input.id === 'Legal_Name' ? (
+            <select onChange={e => setArea(e.target.value)}>
+              <option value='all' defaultChecked>All</option>
+              <option value='AZ'>Arezona</option>
+              <option value='TX'>texas</option>
+              <option value='CO'>calirado</option>
             </select>
-          )}
+          ): <></>}
           <input type={input.type} id={input.id} value={data[input.id] || ''} onChange={e => {
             setData({...data, [input.id]: e.target.value})
             setMessage(null)
